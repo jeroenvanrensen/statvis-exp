@@ -30,4 +30,3 @@ tp.annotate(f, frame)
 # # ax.show()
 # plt.show()
 
-#teset
