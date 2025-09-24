@@ -11,22 +11,31 @@ from pandas import DataFrame, Series  # for convenience
 
 @pims.pipeline
 def gray(image):
-    return image[:, :, 1]  # Take just the green channel
+    return image[:, :, 1]  # Take just the blue channel
 
 
-frame = gray(pims.open("foto.jpg"))[0]
-# print(len(frame))
-# plt.imshow(frame)
-# plt.show()
-# print(list(frame)[0])
-f = tp.locate(frame, 15, invert=True, minmass=300)
-print(f)
-tp.annotate(f, frame)
-# fig, ax = plt.subplots()
-# ax.hist(f["mass"], bins=20)
+def deeltjes_tellen(filename):
+    frame = gray(pims.open(filename))[0]
+    f = tp.locate(frame, 15, invert=True, minmass=250)
+    # tp.annotate(f, frame)
+    print(len(f))
 
-# # Optionally, label the axes.
-# ax.set(xlabel="mass", ylabel="count")
-# # ax.show()
-# plt.show()
 
+deeltjes_tellen("data/1% hoogte 190 mm/A0004-20250924_134311.jpg")
+
+
+# frame = gray(pims.open("foto.jpg"))[0]
+# # print(len(frame))
+# # plt.imshow(frame)
+# # plt.show()
+# # print(list(frame)[0])
+# f = tp.locate(frame, 15, invert=True, minmass=300)
+# print(f)
+# tp.annotate(f, frame)
+# # fig, ax = plt.subplots()
+# # ax.hist(f["mass"], bins=20)
+
+# # # Optionally, label the axes.
+# # ax.set(xlabel="mass", ylabel="count")
+# # # ax.show()
+# # plt.show()
