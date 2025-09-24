@@ -9,7 +9,7 @@ import trackpy as tp
 from pandas import DataFrame, Series  # for convenience\
 from uncertainties import ufloat
 
-hoogte_per_concentratie = [ufloat(565, 10), ufloat(590, 10), ufloat(570,10))]
+hoogte_per_concentratie = [ufloat(565, 10), ufloat(590, 10), ufloat(570, 10)]
 dikte_plaatje = ufloat(750, 60)
 
 
