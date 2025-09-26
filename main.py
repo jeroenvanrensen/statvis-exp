@@ -101,10 +101,10 @@ def Plot_hoogte_aantal_deeltjes(concentratie):
         N.append(i.n)
         N_std.append(i.s)
 
-    plt.errorbar(
-        echte_hoogtes, N, xerr=echte_hoogtes_std, yerr=N_std, fmt="o", markersize=5
-    )
-    plt.show()
+    # plt.errorbar(
+    #     echte_hoogtes, N, xerr=echte_hoogtes_std, yerr=N_std, fmt="o", markersize=5
+    # )
+    # plt.show()
 
 
 def f(B, ln_N):
@@ -150,17 +150,17 @@ def plot_z0_bepalen(concentratie):
     # print("Reduced chi-squared =", chi2red, "\n")
     # odr_res.pprint()
 
-    xplot = np.linspace(np.min(echte_hoogtes), np.max(echte_hoogtes), num=100)
-    plt.plot(xplot, f(par_best, xplot), "r")
+    # xplot = np.linspace(np.min(echte_hoogtes), np.max(echte_hoogtes), num=100)
+    # plt.plot(xplot, f(par_best, xplot), "r")
 
-    plt.errorbar(
-        echte_hoogtes,
-        ln_N,
-        xerr=echte_hoogtes_std,
-        yerr=ln_N_std,
-        fmt="o",
-        markersize=5,
-    )
+    # plt.errorbar(
+    #     echte_hoogtes,
+    #     ln_N,
+    #     xerr=echte_hoogtes_std,
+    #     yerr=ln_N_std,
+    #     fmt="o",
+    #     markersize=5,
+    # )
     # plt.show()
     return z_0
 
@@ -176,3 +176,22 @@ plot_z0_bepalen(0)
 def D_bepaling(concentratie):
     D = v_t * plot_z0_bepalen(concentratie)  # m^2/s
     return D
+
+
+def plot_D_C():
+    concentraties = [0, 1, 2, 3]
+    D = []
+    D_std = []
+    for i in concentraties:
+        D.append(D_bepaling(i).n)
+        D_std.append(D_bepaling(i).s)
+
+    gemiddelde = np.mean(D)
+
+    plt.axhline(8.57 * 10**-13)
+    plt.axhline(gemiddelde)
+    plt.errorbar(concentraties, D, yerr=D_std, fmt="o")
+    plt.show()
+
+
+plot_D_C()
