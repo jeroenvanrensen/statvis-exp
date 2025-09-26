@@ -1,3 +1,4 @@
+import os
 from glob import glob  # Used only for instructive purposes
 
 import matplotlib as mpl
@@ -20,11 +21,6 @@ def kalibratie(concentratie, hoogte):
     return -dikte_plaatje / (x_0 - begin) * hoogte + dikte_plaatje * x_0 / (x_0 - begin)
 
 
-print(kalibratie(1, 590))
-print(kalibratie(1, 120))
-print(kalibratie(1, 360))
-
-
 @pims.pipeline
 def gray(image):
     return image[:, :, 1]  # Take just the blue channel
@@ -40,16 +36,32 @@ def deeltjes_tellen(filename):
 # deeltjes_tellen("data/1% hoogte 190 mm/A0004-20250924_134311.jpg")
 
 
-def gemiddelde_deeltjes_per_hoogte(hoogte):
-    files = glob(f"data/{hoogte}/*.jpg")
+def gemiddelde_deeltjes_per_hoogte(concentratie, hoogte):
+    namen = ["1%", "0.5%", "0.1%", "0.05%"]
+    naam = namen[concentratie]
+    files = glob("data/" + naam + "/" + naam + " hoogte " + str(hoogte) + " mm/*.jpg")
     list = []
     for file in files:
         list.append(deeltjes_tellen(file))
-
     gemiddelde = np.mean(list)
     std = np.std(list)
-    print(gemiddelde)
-    print(std)
+    return ufloat(gemiddelde, std)
+
+
+# gemiddelde_deeltjes_per_hoogte(2, 230)
+
+
+def hoogtes_per_concentratie(concentratie):
+    namen = ["1%", "0.5%", "0.1%", "0.05%"]
+    naam = namen[concentratie]
+    mapjes = glob("data/" + naam + "/*/", recursive=False)
+    hoogtes = []
+    for i in mapjes:
+        hoogtes.append(int(i[14 + 2 * len(naam) : 17 + 2 * len(naam)]))
+    return hoogtes
+
+
+# hoogtes_per_concentratie(1)
 
 
 # gemiddelde_deeltjes_per_hoogte("1% hoogte 530 mm")
