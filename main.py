@@ -10,15 +10,19 @@ from pandas import DataFrame, Series  # for convenience\
 from uncertainties import ufloat
 
 hoogte_per_concentratie = [ufloat(565, 10), ufloat(590, 10), ufloat(570, 10)]
+begin_hoogte_concentratie = [ufloat(130, 2), ufloat(120, 2), ufloat(130, 2)]
 dikte_plaatje = ufloat(750, 60)
 
 
 def kalibratie(concentratie, hoogte):
     x_0 = hoogte_per_concentratie[concentratie]
-    return -dikte_plaatje / (x_0 - 130) * hoogte + dikte_plaatje * x_0 / (x_0 - 130)
+    begin = begin_hoogte_concentratie[concentratie]
+    return -dikte_plaatje / (x_0 - begin) * hoogte + dikte_plaatje * x_0 / (x_0 - begin)
 
 
-print(kalibratie(0, 565))
+print(kalibratie(1, 590))
+print(kalibratie(1, 120))
+print(kalibratie(1, 360))
 
 
 @pims.pipeline
