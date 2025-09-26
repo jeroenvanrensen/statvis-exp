@@ -26,6 +26,13 @@ begin_hoogte_concentratie = [
 ]
 dikte_plaatje = ufloat(750, 60)
 
+eta = ufloat(1.0016 * 10**-3, 0.0005 * 10**-3)  # sPa
+rho = ufloat(1.05 * 10**3, 0.005 * 10**3)  # kg/m^3
+rho_0 = ufloat(0.9982 * 10**3, 0.0001 * 10**3)  # kg/m^3
+g = ufloat(9.871, 0.001)  # m/s^2
+d = ufloat(0.51 * 10**-6, 0.01 * 10**-6)  # m
+v_t = d**2 * (rho - rho_0) * g / (18 * eta)  # m/s
+
 
 def kalibratie(concentratie, hoogte):
     x_0 = hoogte_per_concentratie[concentratie]
@@ -52,13 +59,13 @@ def gemiddelde_deeltjes_per_hoogte(concentratie, hoogte):
     namen = ["1%", "0.5%", "0.1%", "0.05%"]
     naam = namen[concentratie]
     files = glob("data/" + naam + "/" + naam + " hoogte " + str(hoogte) + " mm/*.jpg")
-    list = []
-    for file in files:
-        list.append(deeltjes_tellen(file))
-    gemiddelde = np.mean(list)
-    std = np.std(list)
-    return ufloat(gemiddelde, std)
-    # return ufloat(deeltjes_tellen(files[1]), 10)
+    # list = []
+    # for file in files:
+    #     list.append(deeltjes_tellen(file))
+    # gemiddelde = np.mean(list)
+    # std = np.std(list)
+    # return ufloat(gemiddelde, std)
+    return ufloat(deeltjes_tellen(files[1]), 10)
 
 
 # gemiddelde_deeltjes_per_hoogte(2, 230)
@@ -112,8 +119,8 @@ def plot_z0_bepalen(concentratie):
     echte_hoogtes = []
     echte_hoogtes_std = []
     for a in hoogtes:
-        echte_hoogtes.append(kalibratie(concentratie, a).n)
-        echte_hoogtes_std.append(kalibratie(concentratie, a).s)
+        echte_hoogtes.append((kalibratie(concentratie, a) * 10**-6).n)
+        echte_hoogtes_std.append((kalibratie(concentratie, a) * 10**-6).s)
 
     aantal_deeltjes = []
     for hoogte in hoogtes:
@@ -121,7 +128,6 @@ def plot_z0_bepalen(concentratie):
     ln_N = []
     ln_N_std = []
     for i in aantal_deeltjes:
-        print(i)
         ln_N.append(log(i).n)
         ln_N_std.append(log(i).s)
 
@@ -130,15 +136,19 @@ def plot_z0_bepalen(concentratie):
     odr_obj = odr.ODR(odr_data, odr_model, beta0=B_start)
     odr_res = odr_obj.run()
     par_best = odr_res.beta
+    b = ufloat(par_best[1], odr_res.sd_beta[1])
+    # print("b = " + ufloat(par_best[1], odr_res.sd_beta[1]))
+    z_0 = -1 / b
+    # print("z_0=" + z_0)
 
-    par_sig_ext = odr_res.sd_beta
-    par_cov = odr_res.cov_beta
-    print("De (INTERNE!) covariantiematrix  = \n", par_cov)
-    chi2 = odr_res.sum_square
-    print("\nChi-squared =", chi2)
-    chi2red = odr_res.res_var
-    print("Reduced chi-squared =", chi2red, "\n")
-    odr_res.pprint()
+    # par_sig_ext = odr_res.sd_beta
+    # par_cov = odr_res.cov_beta
+    # print("De (INTERNE!) covariantiematrix  = \n", par_cov)
+    # chi2 = odr_res.sum_square
+    # print("\nChi-squared =", chi2)
+    # chi2red = odr_res.res_var
+    # print("Reduced chi-squared =", chi2red, "\n")
+    # odr_res.pprint()
 
     xplot = np.linspace(np.min(echte_hoogtes), np.max(echte_hoogtes), num=100)
     plt.plot(xplot, f(par_best, xplot), "r")
@@ -151,12 +161,18 @@ def plot_z0_bepalen(concentratie):
         fmt="o",
         markersize=5,
     )
-    plt.show()
+    # plt.show()
+    return z_0
 
 
 # Plot_hoogte_aantal_deeltjes(2)
 # Plot_hoogte_aantal_deeltjes(0)
-plot_z0_bepalen(3)
+plot_z0_bepalen(0)
 
 # x = ufloat(1000, 3)
 # print(log(x))
+
+
+def D_bepaling(concentratie):
+    D = v_t * plot_z0_bepalen(concentratie)  # m^2/s
+    return D
