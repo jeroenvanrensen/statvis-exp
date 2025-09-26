@@ -9,6 +9,7 @@ import pims
 import trackpy as tp
 from pandas import DataFrame, Series  # for convenience\
 from uncertainties import ufloat
+from uncertainties.umath import log
 
 hoogte_per_concentratie = [ufloat(565, 10), ufloat(590, 10), ufloat(570, 10)]
 begin_hoogte_concentratie = [ufloat(130, 2), ufloat(120, 2), ufloat(130, 2)]
@@ -72,11 +73,10 @@ def Plot_hoogte_aantal_deeltjes(concentratie):
     for a in hoogtes:
         echte_hoogtes.append(kalibratie(concentratie, a).n)
         echte_hoogtes_std.append(kalibratie(concentratie, a).s)
-    # print(hoogtes)
+
     aantal_deeltjes = []
     for hoogte in hoogtes:
         aantal_deeltjes.append(gemiddelde_deeltjes_per_hoogte(concentratie, hoogte))
-    # print(aantal_deeltjes)
     N = []
     N_std = []
     for i in aantal_deeltjes:
@@ -89,5 +89,34 @@ def Plot_hoogte_aantal_deeltjes(concentratie):
     plt.show()
 
 
+def plot_z0_bepalen(concentratie):
+    hoogtes = hoogtes_per_concentratie(concentratie)
+    echte_hoogtes = []
+    echte_hoogtes_std = []
+    for a in hoogtes:
+        echte_hoogtes.append(kalibratie(concentratie, a).n)
+        echte_hoogtes_std.append(kalibratie(concentratie, a).s)
+
+    aantal_deeltjes = []
+    for hoogte in hoogtes:
+        aantal_deeltjes.append(gemiddelde_deeltjes_per_hoogte(concentratie, hoogte))
+    ln_N = []
+    ln_N_std = []
+    for i in aantal_deeltjes:
+        ln_N.append(log(i).n)
+        ln_N_std.append(log(i).s)
+
+    plt.errorbar(
+        echte_hoogtes,
+        ln_N,
+        xerr=echte_hoogtes_std,
+        yerr=ln_N_std,
+        fmt="o",
+        markersize=5,
+    )
+    plt.show()
+
+
 # Plot_hoogte_aantal_deeltjes(2)
-Plot_hoogte_aantal_deeltjes(0)
+# Plot_hoogte_aantal_deeltjes(0)
+plot_z0_bepalen(2)
