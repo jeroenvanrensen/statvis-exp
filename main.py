@@ -89,21 +89,3 @@ def Plot_hoogte_aantal_deeltjes(concentratie):
 
 # Plot_hoogte_aantal_deeltjes(2)
 Plot_hoogte_aantal_deeltjes(0)
-
-# gemiddelde_deeltjes_per_hoogte("1% hoogte 530 mm")
-# gemiddelde_deeltjes_per_hoogte("1% hoogte 210 mm")
-# frame = gray(pims.open("foto.jpg"))[0]
-# # print(len(frame))
-# # plt.imshow(frame)
-# # plt.show()
-# # print(list(frame)[0])
-# f = tp.locate(frame, 15, invert=True, minmass=300)
-# print(f)
-# tp.annotate(f, frame)
-# # fig, ax = plt.subplots()
-# # ax.hist(f["mass"], bins=20)
-
-# # # Optionally, label the axes.
-# # ax.set(xlabel="mass", ylabel="count")
-# # # ax.show()
-# # plt.show()
