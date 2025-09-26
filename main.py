@@ -83,7 +83,9 @@ def Plot_hoogte_aantal_deeltjes(concentratie):
         N.append(i.n)
         N_std.append(i.s)
 
-    plt.errorbar(echte_hoogtes, N, yerr=N_std, fmt="o", markersize=5)
+    plt.errorbar(
+        echte_hoogtes, N, xerr=echte_hoogtes_std, yerr=N_std, fmt="o", markersize=5
+    )
     plt.show()
 
 
