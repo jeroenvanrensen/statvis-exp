@@ -6,13 +6,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pims
+import scipy.odr as odr
 import trackpy as tp
 from pandas import DataFrame, Series  # for convenience\
 from uncertainties import ufloat
 from uncertainties.umath import log
 
-hoogte_per_concentratie = [ufloat(565, 10), ufloat(590, 10), ufloat(570, 10)]
-begin_hoogte_concentratie = [ufloat(130, 2), ufloat(120, 2), ufloat(130, 2)]
+hoogte_per_concentratie = [
+    ufloat(565, 10),
+    ufloat(590, 10),
+    ufloat(570, 10),
+    ufloat(545, 10),
+]
+begin_hoogte_concentratie = [
+    ufloat(130, 2),
+    ufloat(120, 2),
+    ufloat(130, 2),
+    ufloat(130, 2),
+]
 dikte_plaatje = ufloat(750, 60)
 
 
@@ -41,13 +52,13 @@ def gemiddelde_deeltjes_per_hoogte(concentratie, hoogte):
     namen = ["1%", "0.5%", "0.1%", "0.05%"]
     naam = namen[concentratie]
     files = glob("data/" + naam + "/" + naam + " hoogte " + str(hoogte) + " mm/*.jpg")
-    # list = []
-    # for file in files:
-    #     list.append(deeltjes_tellen(file))
-    # gemiddelde = np.mean(list)
-    # std = np.std(list)
-    # return ufloat(gemiddelde, std)
-    return ufloat(deeltjes_tellen(files[0]), 10)
+    list = []
+    for file in files:
+        list.append(deeltjes_tellen(file))
+    gemiddelde = np.mean(list)
+    std = np.std(list)
+    return ufloat(gemiddelde, std)
+    # return ufloat(deeltjes_tellen(files[1]), 10)
 
 
 # gemiddelde_deeltjes_per_hoogte(2, 230)
@@ -89,6 +100,13 @@ def Plot_hoogte_aantal_deeltjes(concentratie):
     plt.show()
 
 
+def f(B, ln_N):
+    return B[0] + B[1] * ln_N
+
+
+B_start = [5.0, 0.25]
+
+
 def plot_z0_bepalen(concentratie):
     hoogtes = hoogtes_per_concentratie(concentratie)
     echte_hoogtes = []
@@ -103,8 +121,27 @@ def plot_z0_bepalen(concentratie):
     ln_N = []
     ln_N_std = []
     for i in aantal_deeltjes:
+        print(i)
         ln_N.append(log(i).n)
         ln_N_std.append(log(i).s)
+
+    odr_model = odr.Model(f)
+    odr_data = odr.RealData(echte_hoogtes, ln_N, sx=echte_hoogtes_std, sy=ln_N_std)
+    odr_obj = odr.ODR(odr_data, odr_model, beta0=B_start)
+    odr_res = odr_obj.run()
+    par_best = odr_res.beta
+
+    par_sig_ext = odr_res.sd_beta
+    par_cov = odr_res.cov_beta
+    print("De (INTERNE!) covariantiematrix  = \n", par_cov)
+    chi2 = odr_res.sum_square
+    print("\nChi-squared =", chi2)
+    chi2red = odr_res.res_var
+    print("Reduced chi-squared =", chi2red, "\n")
+    odr_res.pprint()
+
+    xplot = np.linspace(np.min(echte_hoogtes), np.max(echte_hoogtes), num=100)
+    plt.plot(xplot, f(par_best, xplot), "r")
 
     plt.errorbar(
         echte_hoogtes,
@@ -119,4 +156,7 @@ def plot_z0_bepalen(concentratie):
 
 # Plot_hoogte_aantal_deeltjes(2)
 # Plot_hoogte_aantal_deeltjes(0)
-plot_z0_bepalen(2)
+plot_z0_bepalen(3)
+
+# x = ufloat(1000, 3)
+# print(log(x))
