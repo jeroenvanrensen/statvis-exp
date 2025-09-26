@@ -40,12 +40,13 @@ def gemiddelde_deeltjes_per_hoogte(concentratie, hoogte):
     namen = ["1%", "0.5%", "0.1%", "0.05%"]
     naam = namen[concentratie]
     files = glob("data/" + naam + "/" + naam + " hoogte " + str(hoogte) + " mm/*.jpg")
-    list = []
-    for file in files:
-        list.append(deeltjes_tellen(file))
-    gemiddelde = np.mean(list)
-    std = np.std(list)
-    return ufloat(gemiddelde, std)
+    # list = []
+    # for file in files:
+    #     list.append(deeltjes_tellen(file))
+    # gemiddelde = np.mean(list)
+    # std = np.std(list)
+    # return ufloat(gemiddelde, std)
+    return ufloat(deeltjes_tellen(files[0]), 10)
 
 
 # gemiddelde_deeltjes_per_hoogte(2, 230)
@@ -63,6 +64,31 @@ def hoogtes_per_concentratie(concentratie):
 
 # hoogtes_per_concentratie(1)
 
+
+def Plot_hoogte_aantal_deeltjes(concentratie):
+    hoogtes = hoogtes_per_concentratie(concentratie)
+    echte_hoogtes = []
+    echte_hoogtes_std = []
+    for a in hoogtes:
+        echte_hoogtes.append(kalibratie(concentratie, a).n)
+        echte_hoogtes_std.append(kalibratie(concentratie, a).s)
+    # print(hoogtes)
+    aantal_deeltjes = []
+    for hoogte in hoogtes:
+        aantal_deeltjes.append(gemiddelde_deeltjes_per_hoogte(concentratie, hoogte))
+    # print(aantal_deeltjes)
+    N = []
+    N_std = []
+    for i in aantal_deeltjes:
+        N.append(i.n)
+        N_std.append(i.s)
+
+    plt.errorbar(echte_hoogtes, N, yerr=N_std, fmt="o", markersize=5)
+    plt.show()
+
+
+# Plot_hoogte_aantal_deeltjes(2)
+Plot_hoogte_aantal_deeltjes(0)
 
 # gemiddelde_deeltjes_per_hoogte("1% hoogte 530 mm")
 # gemiddelde_deeltjes_per_hoogte("1% hoogte 210 mm")
