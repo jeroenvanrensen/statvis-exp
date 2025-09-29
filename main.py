@@ -45,10 +45,12 @@ def gray(image):
     return image[:, :, 1]  # Take just the blue channel
 
 
-def deeltjes_tellen(filename):
+def deeltjes_tellen(filename, concentratie):
     frame = gray(pims.open(filename))[0]
-    f = tp.locate(frame, 15, invert=True, minmass=250)
+    f = tp.locate(frame, 15, invert=True, minmass=275)
     # tp.annotate(f, frame)
+    if concentratie == 1:
+        return len(f) - 1
     return len(f)
 
 
@@ -59,13 +61,13 @@ def gemiddelde_deeltjes_per_hoogte(concentratie, hoogte):
     namen = ["1%", "0.5%", "0.1%", "0.05%"]
     naam = namen[concentratie]
     files = glob("data/" + naam + "/" + naam + " hoogte " + str(hoogte) + " mm/*.jpg")
-    # list = []
-    # for file in files:
-    #     list.append(deeltjes_tellen(file))
-    # gemiddelde = np.mean(list)
-    # std = np.std(list)
-    # return ufloat(gemiddelde, std)
-    return ufloat(deeltjes_tellen(files[1]), 10)
+    list = []
+    for file in files:
+        list.append(deeltjes_tellen(file, concentratie))
+    gemiddelde = np.mean(list)
+    std = np.std(list)
+    return ufloat(gemiddelde, std)
+    # return ufloat(deeltjes_tellen(files[1]), 10)
 
 
 # gemiddelde_deeltjes_per_hoogte(2, 230)
@@ -101,10 +103,16 @@ def Plot_hoogte_aantal_deeltjes(concentratie):
         N.append(i.n)
         N_std.append(i.s)
 
-    # plt.errorbar(
-    #     echte_hoogtes, N, xerr=echte_hoogtes_std, yerr=N_std, fmt="o", markersize=5
-    # )
-    # plt.show()
+    plt.errorbar(
+        echte_hoogtes, N, xerr=echte_hoogtes_std, yerr=N_std, fmt="o", markersize=5
+    )
+    plt.show()
+
+
+# Plot_hoogte_aantal_deeltjes(0)
+# Plot_hoogte_aantal_deeltjes(1)
+# Plot_hoogte_aantal_deeltjes(2)
+# Plot_hoogte_aantal_deeltjes(3)
 
 
 def f(B, ln_N):
@@ -137,9 +145,7 @@ def plot_z0_bepalen(concentratie):
     odr_res = odr_obj.run()
     par_best = odr_res.beta
     b = ufloat(par_best[1], odr_res.sd_beta[1])
-    # print("b = " + ufloat(par_best[1], odr_res.sd_beta[1]))
     z_0 = -1 / b
-    # print("z_0=" + z_0)
 
     # par_sig_ext = odr_res.sd_beta
     # par_cov = odr_res.cov_beta
@@ -165,9 +171,9 @@ def plot_z0_bepalen(concentratie):
     return z_0
 
 
-# Plot_hoogte_aantal_deeltjes(2)
 # Plot_hoogte_aantal_deeltjes(0)
-plot_z0_bepalen(0)
+# Plot_hoogte_aantal_deeltjes(0)
+# plot_z0_bepalen(3)
 
 # x = ufloat(1000, 3)
 # print(log(x))
