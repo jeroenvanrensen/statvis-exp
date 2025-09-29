@@ -9,6 +9,7 @@ import pims
 import scipy.odr as odr
 import trackpy as tp
 from pandas import DataFrame, Series  # for convenience
+from uncertainties import *
 from uncertainties import ufloat
 from uncertainties.umath import log
 
@@ -229,59 +230,168 @@ concentratie_3_echte_hoogtes = list(
     map(lambda x: kalibratie(3, x), concentratie_3_hoogtes)
 )
 
-fig, axs = plt.subplots(2, 2, constrained_layout=True)
-box = dict(facecolor="yellow", pad=5, alpha=0.2)
-# fig.align_ylabels(axs[:, 1])
-# fig.subplots_adjust(left=200, wspace=600)
-# labelx = -0.3  # axes coords
 
-# for j in range(2):
-#     axs[j, 1].yaxis.set_label_coords(labelx, 0.5)
+def hoogte_aantal_deeltjes_plot():
+    fig, axs = plt.subplots(2, 2, constrained_layout=True)
 
-axs[0, 0].errorbar(
-    list(map(lambda x: x.n, concentratie_3_echte_hoogtes)),
-    list(map(lambda x: x.n, concentratie_3_aantal_deeltjes)),
-    xerr=list(map(lambda x: x.s, concentratie_3_echte_hoogtes)),
-    yerr=list(map(lambda x: x.s, concentratie_3_aantal_deeltjes)),
-    fmt="o",
-    color="red",
-)
-axs[0, 1].errorbar(
-    list(map(lambda x: x.n, concentratie_2_echte_hoogtes)),
-    list(map(lambda x: x.n, concentratie_2_aantal_deeltjes)),
-    xerr=list(map(lambda x: x.s, concentratie_2_echte_hoogtes)),
-    yerr=list(map(lambda x: x.s, concentratie_2_aantal_deeltjes)),
-    fmt="o",
-    color="orange",
-)
-axs[1, 0].errorbar(
-    list(map(lambda x: x.n, concentratie_1_echte_hoogtes)),
-    list(map(lambda x: x.n, concentratie_1_aantal_deeltjes)),
-    xerr=list(map(lambda x: x.s, concentratie_1_echte_hoogtes)),
-    yerr=list(map(lambda x: x.s, concentratie_1_aantal_deeltjes)),
-    fmt="o",
-    color="forestgreen",
-)
-axs[1, 1].errorbar(
-    list(map(lambda x: x.n, concentratie_0_echte_hoogtes)),
-    list(map(lambda x: x.n, concentratie_0_aantal_deeltjes)),
-    xerr=list(map(lambda x: x.s, concentratie_0_echte_hoogtes)),
-    yerr=list(map(lambda x: x.s, concentratie_0_aantal_deeltjes)),
-    fmt="o",
-    color="royalblue",
-)
+    axs[0, 0].errorbar(
+        list(map(lambda x: x.n, concentratie_3_echte_hoogtes)),
+        list(map(lambda x: x.n, concentratie_3_aantal_deeltjes)),
+        xerr=list(map(lambda x: x.s, concentratie_3_echte_hoogtes)),
+        yerr=list(map(lambda x: x.s, concentratie_3_aantal_deeltjes)),
+        fmt="o",
+        color="red",
+    )
+    axs[0, 1].errorbar(
+        list(map(lambda x: x.n, concentratie_2_echte_hoogtes)),
+        list(map(lambda x: x.n, concentratie_2_aantal_deeltjes)),
+        xerr=list(map(lambda x: x.s, concentratie_2_echte_hoogtes)),
+        yerr=list(map(lambda x: x.s, concentratie_2_aantal_deeltjes)),
+        fmt="o",
+        color="orange",
+    )
+    axs[1, 0].errorbar(
+        list(map(lambda x: x.n, concentratie_1_echte_hoogtes)),
+        list(map(lambda x: x.n, concentratie_1_aantal_deeltjes)),
+        xerr=list(map(lambda x: x.s, concentratie_1_echte_hoogtes)),
+        yerr=list(map(lambda x: x.s, concentratie_1_aantal_deeltjes)),
+        fmt="o",
+        color="forestgreen",
+    )
+    axs[1, 1].errorbar(
+        list(map(lambda x: x.n, concentratie_0_echte_hoogtes)),
+        list(map(lambda x: x.n, concentratie_0_aantal_deeltjes)),
+        xerr=list(map(lambda x: x.s, concentratie_0_echte_hoogtes)),
+        yerr=list(map(lambda x: x.s, concentratie_0_aantal_deeltjes)),
+        fmt="o",
+        color="royalblue",
+    )
 
-for ax in axs.flat:
-    ax.set_ylim(bottom=0)
+    for ax in axs.flat:
+        ax.set_ylim(bottom=0)
 
-axs[0, 0].set_title("(a) Concentration 0.05%", fontsize=10)
-axs[0, 0].set_ylabel("Number of particles $N$ (AU)")
-axs[0, 1].set_title("(b) Concentration 0.1%", fontsize=10)
-axs[1, 0].set_title("(c) Concentration 0.5%", fontsize=10)
-axs[1, 0].set(xlabel="Hoogte $z$ (µm)")
-axs[1, 0].set_ylabel("Number of particles $N$ (AU)")
-axs[1, 1].set_title("(d) Concentration 1%", fontsize=10)
-axs[1, 1].set(xlabel="Hoogte $z$ (µm)")
-fig.align_ylabels(axs)
+    axs[0, 0].set_title("(a) Concentration 0.05%", fontsize=10)
+    axs[0, 0].set_ylabel("Number of particles $N$ (AU)")
+    axs[0, 1].set_title("(b) Concentration 0.1%", fontsize=10)
+    axs[1, 0].set_title("(c) Concentration 0.5%", fontsize=10)
+    axs[1, 0].set(xlabel="Hoogte $z$ (µm)")
+    axs[1, 0].set_ylabel("Number of particles $N$ (AU)")
+    axs[1, 1].set_title("(d) Concentration 1%", fontsize=10)
+    axs[1, 1].set(xlabel="Hoogte $z$ (µm)")
+    fig.align_ylabels(axs)
 
-plt.show()
+    plt.show()
+
+
+def f(B, ln_N):
+    return B[0] + B[1] * ln_N
+
+
+def fit_per_concentratie(concentratie):
+    hoogtes = [
+        concentratie_0_echte_hoogtes,
+        concentratie_1_echte_hoogtes,
+        concentratie_2_echte_hoogtes,
+        concentratie_3_echte_hoogtes,
+    ][concentratie]
+
+    log_aantal_deeltjes = list(
+        map(
+            lambda x: log(x),
+            [
+                concentratie_0_aantal_deeltjes,
+                concentratie_1_aantal_deeltjes,
+                concentratie_2_aantal_deeltjes,
+                concentratie_3_aantal_deeltjes,
+            ][concentratie],
+        )
+    )
+
+    odr_model = odr.Model(f)
+    odr_data = odr.RealData(
+        list(map(lambda x: x.n, hoogtes)),
+        list(map(lambda x: x.n, log_aantal_deeltjes)),
+        sx=list(map(lambda x: x.s, hoogtes)),
+        sy=list(map(lambda x: x.s, log_aantal_deeltjes)),
+    )
+    odr_obj = odr.ODR(odr_data, odr_model, beta0=[1, 1])
+    odr_res = odr_obj.run()
+    par_best = odr_res.beta
+    par_sig_ext = odr_res.sd_beta
+
+    return [par_best, par_sig_ext]
+
+
+def hoogte_log_aantal_deeltjes_plot():
+    fig, axs = plt.subplots(2, 2, constrained_layout=True)
+
+    xplot = np.linspace(
+        np.min(list(map(lambda x: x.n, concentratie_3_echte_hoogtes))),
+        np.max(list(map(lambda x: x.n, concentratie_3_echte_hoogtes))),
+    )
+    axs[0, 0].plot(xplot, f(fit_per_concentratie(3)[0], xplot), color="red")
+    axs[0, 0].errorbar(
+        list(map(lambda x: x.n, concentratie_3_echte_hoogtes)),
+        list(map(lambda x: log(x).n, concentratie_3_aantal_deeltjes)),
+        xerr=list(map(lambda x: x.s, concentratie_3_echte_hoogtes)),
+        yerr=list(map(lambda x: log(x).s, concentratie_3_aantal_deeltjes)),
+        fmt="o",
+        color="red",
+    )
+
+    xplot = np.linspace(
+        np.min(list(map(lambda x: x.n, concentratie_2_echte_hoogtes))),
+        np.max(list(map(lambda x: x.n, concentratie_2_echte_hoogtes))),
+    )
+    axs[0, 1].plot(xplot, f(fit_per_concentratie(2)[0], xplot), color="orange")
+    axs[0, 1].errorbar(
+        list(map(lambda x: x.n, concentratie_2_echte_hoogtes)),
+        list(map(lambda x: log(x).n, concentratie_2_aantal_deeltjes)),
+        xerr=list(map(lambda x: x.s, concentratie_2_echte_hoogtes)),
+        yerr=list(map(lambda x: log(x).s, concentratie_2_aantal_deeltjes)),
+        fmt="o",
+        color="orange",
+    )
+
+    xplot = np.linspace(
+        np.min(list(map(lambda x: x.n, concentratie_1_echte_hoogtes))),
+        np.max(list(map(lambda x: x.n, concentratie_1_echte_hoogtes))),
+    )
+    axs[1, 0].plot(xplot, f(fit_per_concentratie(1)[0], xplot), color="forestgreen")
+    axs[1, 0].errorbar(
+        list(map(lambda x: x.n, concentratie_1_echte_hoogtes)),
+        list(map(lambda x: log(x).n, concentratie_1_aantal_deeltjes)),
+        xerr=list(map(lambda x: x.s, concentratie_1_echte_hoogtes)),
+        yerr=list(map(lambda x: log(x).s, concentratie_1_aantal_deeltjes)),
+        fmt="o",
+        color="forestgreen",
+    )
+
+    xplot = np.linspace(
+        np.min(list(map(lambda x: x.n, concentratie_0_echte_hoogtes))),
+        np.max(list(map(lambda x: x.n, concentratie_0_echte_hoogtes))),
+    )
+    axs[1, 1].plot(xplot, f(fit_per_concentratie(0)[0], xplot), color="blue")
+    axs[1, 1].errorbar(
+        list(map(lambda x: x.n, concentratie_0_echte_hoogtes)),
+        list(map(lambda x: log(x).n, concentratie_0_aantal_deeltjes)),
+        xerr=list(map(lambda x: x.s, concentratie_0_echte_hoogtes)),
+        yerr=list(map(lambda x: log(x).s, concentratie_0_aantal_deeltjes)),
+        fmt="o",
+        color="royalblue",
+    )
+
+    axs[0, 0].set_title("(a) Concentration 0.05%", fontsize=10)
+    axs[0, 0].set_ylabel("$\\log(N)$ (AU)")
+    axs[0, 1].set_title("(b) Concentration 0.1%", fontsize=10)
+    axs[1, 0].set_title("(c) Concentration 0.5%", fontsize=10)
+    axs[1, 0].set(xlabel="Hoogte $z$ (µm)")
+    axs[1, 0].set_ylabel("$\\log(N)$ (AU)")
+    axs[1, 1].set_title("(d) Concentration 1%", fontsize=10)
+    axs[1, 1].set(xlabel="Hoogte $z$ (µm)")
+    fig.align_ylabels(axs)
+
+    plt.show()
+
+
+hoogte_log_aantal_deeltjes_plot()
