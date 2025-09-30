@@ -230,6 +230,13 @@ concentratie_3_echte_hoogtes = list(
     map(lambda x: kalibratie(3, x), concentratie_3_hoogtes)
 )
 
+D_waardes = [
+    ufloat(1.1802486575751698e-12, 1.2381275344295053e-13),
+    ufloat(1.007137616926891e-12, 1.053094852761314e-13),
+    ufloat(1.0181178346701724e-12, 1.1709379492223014e-13),
+    ufloat(1.1643083303038968e-12, 1.3333221195389216e-13),
+]
+
 
 def hoogte_aantal_deeltjes_plot():
     fig, axs = plt.subplots(2, 2, constrained_layout=True)
@@ -394,4 +401,15 @@ def hoogte_log_aantal_deeltjes_plot():
     plt.show()
 
 
-hoogte_log_aantal_deeltjes_plot()
+def D_waardes_plot():
+    plt.errorbar(0, D_waardes[3].n, yerr=D_waardes[3].s, fmt="o", color="red")
+    plt.errorbar(1, D_waardes[2].n, yerr=D_waardes[2].s, fmt="o", color="orange")
+    plt.errorbar(2, D_waardes[1].n, yerr=D_waardes[1].s, fmt="o", color="forestgreen")
+    plt.errorbar(3, D_waardes[0].n, yerr=D_waardes[0].s, fmt="o", color="royalblue")
+    plt.axhline(np.mean(list(map(lambda x: x.n, D_waardes))), color="#999")
+    plt.xticks([0, 1, 2, 3], ["0.05%", "0.1%", "0.5%", "1%"])
+    plt.ylabel("Diffusion coefficient $D$ (m$^2$/s)")
+    plt.show()
+
+
+D_waardes_plot()
