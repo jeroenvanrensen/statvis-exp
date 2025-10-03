@@ -1,3 +1,4 @@
+import math
 import os
 from glob import glob  # Used only for instructive purposes
 
@@ -26,6 +27,12 @@ begin_hoogte_concentratie = [
     ufloat(130, 2),
 ]
 dikte_plaatje = ufloat(750, 60)
+
+k_B = (1.380649) * 10**-23  # J/K
+T = ufloat(20.9 + 273.15, 0.1)  # K
+d = ufloat(0.51, 0.01) * 10**-6  # m
+eta = ufloat(0.9775, 0.0241) * 10**-3  # Pa s
+D_expected = k_B * T / (3 * math.pi * d * eta)
 
 
 def kalibratie(concentratie, hoogte):
@@ -281,10 +288,10 @@ def hoogte_aantal_deeltjes_plot():
     axs[0, 0].set_ylabel("Number of particles $N$ (AU)")
     axs[0, 1].set_title("(b) Concentration 0.1%", fontsize=10)
     axs[1, 0].set_title("(c) Concentration 0.5%", fontsize=10)
-    axs[1, 0].set(xlabel="Hoogte $z$ (µm)")
+    axs[1, 0].set(xlabel="Height $z$ (µm)")
     axs[1, 0].set_ylabel("Number of particles $N$ (AU)")
     axs[1, 1].set_title("(d) Concentration 1%", fontsize=10)
-    axs[1, 1].set(xlabel="Hoogte $z$ (µm)")
+    axs[1, 1].set(xlabel="Height $z$ (µm)")
     fig.align_ylabels(axs)
 
     plt.show()
@@ -325,6 +332,9 @@ def fit_per_concentratie(concentratie):
     odr_res = odr_obj.run()
     par_best = odr_res.beta
     par_sig_ext = odr_res.sd_beta
+
+    b = ufloat(par_best[1], par_sig_ext[1])
+    print(-1 / b)
 
     return [par_best, par_sig_ext]
 
@@ -392,10 +402,10 @@ def hoogte_log_aantal_deeltjes_plot():
     axs[0, 0].set_ylabel("$\\log(N)$ (AU)")
     axs[0, 1].set_title("(b) Concentration 0.1%", fontsize=10)
     axs[1, 0].set_title("(c) Concentration 0.5%", fontsize=10)
-    axs[1, 0].set(xlabel="Hoogte $z$ (µm)")
+    axs[1, 0].set(xlabel="Height $z$ (µm)")
     axs[1, 0].set_ylabel("$\\log(N)$ (AU)")
     axs[1, 1].set_title("(d) Concentration 1%", fontsize=10)
-    axs[1, 1].set(xlabel="Hoogte $z$ (µm)")
+    axs[1, 1].set(xlabel="Height $z$ (µm)")
     fig.align_ylabels(axs)
 
     plt.show()
@@ -407,9 +417,19 @@ def D_waardes_plot():
     plt.errorbar(2, D_waardes[1].n, yerr=D_waardes[1].s, fmt="o", color="forestgreen")
     plt.errorbar(3, D_waardes[0].n, yerr=D_waardes[0].s, fmt="o", color="royalblue")
     plt.axhline(np.mean(list(map(lambda x: x.n, D_waardes))), color="#999")
+    plt.axhline(D_expected.n, color="#999", dashes=[3])
     plt.xticks([0, 1, 2, 3], ["0.05%", "0.1%", "0.5%", "1%"])
     plt.ylabel("Diffusion coefficient $D$ (m$^2$/s)")
-    plt.show()
+    plt.xlabel("Concentration")
+    plt.show(np.mean(list(map(lambda x: x.n, D_waardes))))
 
 
+# print(
+#     ufloat(
+#         np.mean(list(map(lambda x: x.n, D_waardes))),
+#         np.std((list(map(lambda x: x.n, D_waardes)))),
+#     )
+# )
+
+# print(3 * math.pi * d * eta * np.mean(list(map(lambda x: x.n, D_waardes))) / k_B)
 D_waardes_plot()
